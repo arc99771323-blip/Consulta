@@ -14,10 +14,9 @@
         :root {
             --primary: #6366f1;
             --primary-hover: #4f46e5;
-            --accent: #10b981;
             --danger: #ef4444;
             
-            /* Light Mode Variables */
+            /* Light Mode */
             --bg-body: #f3f4f6;
             --glass-bg: rgba(255, 255, 255, 0.8);
             --text-main: #1f2937;
@@ -78,7 +77,6 @@
         }
         .nav-btn:hover { background: rgba(99, 102, 241, 0.05); border-color: var(--primary); }
 
-        /* Scanner */
         #reader { 
             width: 100%; border-radius: 20px; overflow: hidden; 
             margin-bottom: 20px; display: none; 
@@ -86,7 +84,6 @@
             background: #000;
         }
 
-        /* Busca */
         .search-area { position: relative; margin-bottom: 20px; display: flex; gap: 10px; }
         .input-group { position: relative; flex: 1; }
         .input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
@@ -106,11 +103,11 @@
         .btn-scan:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .btn-scan.active { background: var(--danger); }
 
-        /* Sugestões */
         .suggestions-box {
             position: absolute; top: 100%; left: 0; right: 0; background: var(--glass-bg);
             border-radius: 18px; margin-top: 8px; z-index: 100; border: 1px solid var(--border);
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 250px; overflow-y: auto; display: none;
+            backdrop-filter: blur(20px);
         }
         .suggest-item { 
             padding: 14px 20px; cursor: pointer; border-bottom: 1px solid var(--border);
@@ -119,8 +116,6 @@
         .suggest-item:hover { background: var(--primary); color: white; }
         .suggest-item span { font-size: 10px; opacity: 0.7; font-weight: 700; text-transform: uppercase; }
 
-        /* Card de Resultado */
-        #resultado { margin-top: 10px; }
         .product-card { 
             background: var(--bg-body); border-radius: 22px; overflow: hidden; 
             border: 1px solid var(--border); animation: slideUp 0.4s ease forwards;
@@ -144,7 +139,7 @@
 <div class="app-container">
     <header>
         <div class="logo-text"><i class="fas fa-boxes-stacked"></i> INVENTÁRIO PRO</div>
-        <div class="badge">Operacional v2.8</div>
+        <div class="badge">Operacional v3.0</div>
     </header>
 
     <nav class="top-nav">
@@ -157,7 +152,7 @@
     <div class="search-area">
         <div class="input-group">
             <i class="fas fa-search"></i>
-            <input type="text" id="busca" placeholder="Código, Nome ou EAN..." autocomplete="off">
+            <input type="text" id="busca" placeholder="EAN, Código ou Nome..." autocomplete="off">
             <div id="sugestoes" class="suggestions-box"></div>
         </div>
         <button class="btn-scan" id="scanBtn" title="Abrir Câmera">
@@ -169,9 +164,8 @@
 </div>
 
 <script>
-    // --- BANCO DE DADOS ---
     const produtos = [
-       {codigo:"253", descricao:"SUKITA PET 1L CAIXA C/6", fator:6, lastro:25, caixas_pallet:175, embalagem:"PET 1L SH 6", hl_pallet:"10,5", clusterDemanda:"AFFORDABLE", subcategoria:"REFRIGERANTE", categoria:"NAB", categoriaPPMS:"REFRI", codEAN:7891149441204, "Portifolio CDD":"SIM"},
+        {codigo:"253", descricao:"SUKITA PET 1L CAIXA C/6", fator:6, lastro:25, caixas_pallet:175, embalagem:"PET 1L SH 6", hl_pallet:"10,5", clusterDemanda:"AFFORDABLE", subcategoria:"REFRIGERANTE", categoria:"NAB", categoriaPPMS:"REFRI", codEAN:7891149441204, "Portifolio CDD":"SIM"},
 {codigo:"503", descricao:"SUKITA PET 2L CAIXA C/6", fator:6, lastro:20, caixas_pallet:100, embalagem:"PET 2L SH 6", hl_pallet:"12", clusterDemanda:"AFFORDABLE", subcategoria:"REFRIGERANTE", categoria:"NAB", categoriaPPMS:"REFRI", codEAN:7891149440801, "Portifolio CDD":"SIM"},
 {codigo:"504", descricao:"PEPSI COLA PET 2L CAIXA C/6", fator:6, lastro:20, caixas_pallet:100, embalagem:"PET 2L SH 6", hl_pallet:"12", clusterDemanda:"CORE", subcategoria:"REFRIGERANTE", categoria:"NAB", categoriaPPMS:"REFRI", codEAN:7892840800000, "Portifolio CDD":"SIM"},
 {codigo:"772", descricao:"PEPSI COLA MIX BAG IN BOX 18L", fator:1, lastro:10, caixas_pallet:720, embalagem:"BIB 18L", hl_pallet:"43,2", clusterDemanda:"AFFORDABLE", subcategoria:"REFRIGERANTE", categoria:"NAB", categoriaPPMS:"REFRI", codEAN:7892840812409, "Portifolio CDD":"SIM"},
@@ -729,7 +723,8 @@
 {codigo:"863059", descricao:"GARRAFEIRA PLAST PRETA 23 GARRAFAS 30OML", fator:10, lastro:10, caixas_pallet:10, embalagem:"N/E", hl_pallet:"0", clusterDemanda:"N/E", subcategoria:"N/E", categoria:"N/E", categoriaPPMS:"N/E", codEAN:0, "Portifolio CDD":"SIM"},
 {codigo:"27541", descricao:"DIABLO VINHO DARK RED ASSEMBLADE TINTO GFA VD 750 ML", fator:1, lastro:4, caixas_pallet:1344, embalagem:"GFA VD 750 ML", hl_pallet:"10,08", clusterDemanda:"MARKET PLACE", subcategoria:"WINE", categoria:"MKTP", categoriaPPMS:"UNMAPPED", codEAN:7804320746104, "Portifolio CDD":"SIM"},
 {codigo:"36240", descricao:"TRIDENT XSENSES BLUEBERRY ENVELOPE 8G CX C/21", fator:10, lastro:10, caixas_pallet:3520, embalagem:"ENVELOPE 8G CX C/21", hl_pallet:"5,91", clusterDemanda:"MARKET PLACE", subcategoria:"SNACKS", categoria:"MKTP", categoriaPPMS:"MONDELEZ", codEAN:7622210617958, "Portifolio CDD":"SIM"},
-{codigo:"35113", descricao:"FLYING FISH LONG NECK 330 ML SIX-PACK SH C 4", fator:10, lastro:7, caixas_pallet:84, embalagem:"LN 330ML SP SH 4", hl_pallet:"6,65", clusterDemanda:"MATCH", subcategoria:"MATCH", categoria:"MATCH", categoriaPPMS:"CERVEJA", codEAN:7891991307857, "Portifolio CDD":"SIM"}
+{codigo:"35113", descricao:"FLYING FISH LONG NECK 330 ML SIX-PACK SH C 4", fator:10, lastro:7, caixas_pallet:84, embalagem:"LN 330ML SP SH 4", hl_pallet:"6,65", clusterDemanda:"MATCH", subcategoria:"MATCH", categoria:"MATCH", categoriaPPMS:"CERVEJA", codEAN:7891991307857, "Portifolio CDD":"SIM"},
+
     ];
 
     let filtroCDD = false;
@@ -738,26 +733,45 @@
     const sugestoesDiv = document.getElementById('sugestoes');
     const scanBtn = document.getElementById('scanBtn');
 
-    // --- BUSCA INTELIGENTE ---
+    // --- LOGICA DE BUSCA ATUALIZADA ---
     inputBusca.addEventListener('input', e => {
-        const termo = e.target.value.toLowerCase();
+        const termo = e.target.value.trim().toLowerCase();
+        
         if(termo.length < 1) { 
             sugestoesDiv.style.display = 'none'; 
             return; 
         }
 
-        let filtrados = produtos.filter(p => 
-            p.codigo.includes(termo) || 
-            p.descricao.toLowerCase().includes(termo) ||
-            String(p.codEAN).includes(termo)
-        );
+        const apenasNumeros = /^\d+$/.test(termo);
+
+        let filtrados = produtos.filter(p => {
+            if (apenasNumeros) {
+                // Busca EXATA para Código ou EAN quando for número
+                return p.codigo === termo || String(p.codEAN) === termo;
+            } else {
+                // Busca PARCIAL para a Descrição quando for texto
+                return p.descricao.toLowerCase().includes(termo);
+            }
+        });
 
         if(filtroCDD) filtrados = filtrados.filter(p => p["Portifolio CDD"] === "SIM");
 
+        renderizarSugestoes(filtrados, apenasNumeros);
+    });
+
+    function renderizarSugestoes(lista, ehNumero) {
         sugestoesDiv.innerHTML = '';
-        if(filtrados.length > 0) {
+        
+        if(lista.length > 0) {
+            // Se for busca numérica e tiver apenas 1 resultado, exibe direto
+            if(ehNumero && lista.length === 1) {
+                exibirProduto(lista[0]);
+                sugestoesDiv.style.display = 'none';
+                return;
+            }
+
             sugestoesDiv.style.display = 'block';
-            filtrados.forEach(p => {
+            lista.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'suggest-item';
                 div.innerHTML = `<span>CÓD. ${p.codigo}</span><strong>${p.descricao}</strong>`;
@@ -767,7 +781,7 @@
         } else {
             sugestoesDiv.style.display = 'none';
         }
-    });
+    }
 
     function exibirProduto(p) {
         inputBusca.value = '';
@@ -825,7 +839,7 @@
             }
         ).catch(err => {
             console.error(err);
-            alert("Erro ao acessar câmera. Verifique as permissões e se está usando HTTPS.");
+            alert("Certifique-se de usar HTTPS e conceder permissão à câmera.");
             pararScanner();
         });
     }
@@ -844,7 +858,6 @@
         }
     }
 
-    // --- TEMAS E FILTROS ---
     function toggleTheme() {
         document.body.classList.toggle('dark');
         const isDark = document.body.classList.contains('dark');
