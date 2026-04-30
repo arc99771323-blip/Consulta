@@ -1,163 +1,126 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventário Pro | Consulta de Produtos</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta de Produtos Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+    :root {
+        --bg-gradient-light: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        --bg-gradient-dark: linear-gradient(135deg, #1a1a2e, #16213e);
+        --glass-bg-light: rgba(255, 255, 255, 0.95);
+        --glass-bg-dark: rgba(26, 26, 46, 0.98);
+        --primary: #4361ee;
+        --text-main-light: #2d3436;
+        --text-main-dark: #e0e0e0;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-gradient-light);
+        margin: 0; padding: 30px 15px;
+        color: var(--text-main-light);
+        min-height: 100vh;
+        display: flex; flex-direction: column; align-items: center;
+        transition: 0.3s;
+    }
+
+    body.dark { background: var(--bg-gradient-dark); color: var(--text-main-dark); }
+
+    .container {
+        max-width: 650px; width: 100%;
+        background: var(--glass-bg-light);
+        padding: 25px; border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-sizing: border-box;
+    }
+
+    body.dark .container { background: var(--glass-bg-dark); border: 1px solid rgba(255,255,255,0.05); }
+
+    .logo { font-size: 24px; font-weight: 700; color: var(--primary); text-align: center; margin-bottom: 5px; }
+    .subtitulo { text-align: center; margin-bottom: 20px; font-size: 12px; opacity: 0.6; letter-spacing: 1px; }
+
+    /* Scanner Viewport */
+    #reader {
+        width: 100%; border-radius: 12px; overflow: hidden;
+        margin-bottom: 15px; display: none;
+        border: 2px solid var(--primary) !important;
+    }
+
+    .controls { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    .btn-action {
+        padding: 8px 14px; border-radius: 10px; border: none;
+        font-size: 12px; font-weight: 600; cursor: pointer;
+        background: rgba(67, 97, 238, 0.1); color: var(--primary);
+    }
+
+    .search-wrapper { position: relative; display: flex; gap: 8px; margin-bottom: 20px; max-width: 550px; margin: 0 auto 20px auto; }
     
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    .search-box { flex: 1; position: relative; }
 
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --danger: #ef4444;
-            
-            /* Light Mode */
-            --bg-body: #f3f4f6;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: rgba(229, 231, 235, 0.8);
-            --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        }
+    .search-box input {
+        width: 100%; padding: 14px 45px 14px 18px; border-radius: 12px;
+        border: 1.5px solid rgba(0,0,0,0.1); background: white;
+        font-size: 15px; outline: none; box-sizing: border-box;
+    }
 
-        body.dark {
-            --bg-body: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: rgba(51, 65, 85, 0.8);
-            --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-        }
+    /* Botão Limpar */
+    .btn-clear {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        background: none; border: none; color: #999; cursor: pointer;
+        font-size: 16px; display: none; padding: 5px;
+    }
+    .btn-clear:hover { color: #e74c3c; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    .btn-camera {
+        background: var(--primary); color: white; border: none;
+        width: 50px; border-radius: 12px; cursor: pointer; font-size: 18px;
+    }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-body);
-            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,0.1) 0, transparent 50%), 
-                              radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%);
-            background-attachment: fixed;
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex; justify-content: center; align-items: flex-start;
-            padding: 20px;
-            transition: background 0.4s ease;
-        }
+    .suggestions {
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: white; border-radius: 12px; margin-top: 5px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100;
+        display: none; overflow: hidden;
+    }
 
-        .app-container {
-            width: 100%; max-width: 500px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 28px;
-            padding: 25px;
-            box-shadow: var(--card-shadow);
-            margin-top: 20px;
-        }
+    /* Card de Produto */
+    .card-produto { border-radius: 16px; background: white; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; }
+    .card-header { background: var(--primary); color: white; padding: 15px 20px; font-weight: 600; }
+    .card-body { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: rgba(0,0,0,0.05); }
+    .campo { background: white; padding: 14px 18px; display: flex; flex-direction: column; }
+    .campo span { font-size: 9px; text-transform: uppercase; font-weight: 700; color: var(--primary); margin-bottom: 3px; }
+    .campo strong { font-size: 13px; }
 
-        header { text-align: center; margin-bottom: 25px; }
-        .logo-text { font-size: 20px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
-        .badge { 
-            display: inline-block; padding: 4px 12px; border-radius: 100px; 
-            background: rgba(99, 102, 241, 0.1); font-size: 10px; font-weight: 700; 
-            color: var(--primary); text-transform: uppercase; margin-top: 5px;
-        }
-
-        .top-nav { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
-        .nav-btn {
-            flex: 1; padding: 12px; border-radius: 14px; border: 1px solid var(--border);
-            background: transparent; color: var(--text-main); font-size: 13px; font-weight: 600;
-            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .nav-btn:hover { background: rgba(99, 102, 241, 0.05); border-color: var(--primary); }
-
-        #reader { 
-            width: 100%; border-radius: 20px; overflow: hidden; 
-            margin-bottom: 20px; display: none; 
-            border: 2px solid var(--primary) !important;
-            background: #000;
-        }
-
-        .search-area { position: relative; margin-bottom: 20px; display: flex; gap: 10px; }
-        .input-group { position: relative; flex: 1; }
-        .input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-        
-        input#busca {
-            width: 100%; padding: 16px 16px 16px 48px; border-radius: 18px;
-            border: 1px solid var(--border); background: var(--bg-body);
-            color: var(--text-main); font-size: 15px; outline: none; transition: 0.3s;
-        }
-        input#busca:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
-
-        .btn-scan {
-            width: 54px; height: 54px; border-radius: 18px; border: none;
-            background: var(--primary); color: white; cursor: pointer; transition: 0.3s;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-        }
-        .btn-scan:hover { background: var(--primary-hover); transform: translateY(-2px); }
-        .btn-scan.active { background: var(--danger); }
-
-        .suggestions-box {
-            position: absolute; top: 100%; left: 0; right: 0; background: var(--glass-bg);
-            border-radius: 18px; margin-top: 8px; z-index: 100; border: 1px solid var(--border);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-height: 250px; overflow-y: auto; display: none;
-            backdrop-filter: blur(20px);
-        }
-        .suggest-item { 
-            padding: 14px 20px; cursor: pointer; border-bottom: 1px solid var(--border);
-            display: flex; flex-direction: column; transition: 0.2s;
-        }
-        .suggest-item:hover { background: var(--primary); color: white; }
-        .suggest-item span { font-size: 10px; opacity: 0.7; font-weight: 700; text-transform: uppercase; }
-
-        .product-card { 
-            background: var(--bg-body); border-radius: 22px; overflow: hidden; 
-            border: 1px solid var(--border); animation: slideUp 0.4s ease forwards;
-        }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card-header { background: var(--primary); padding: 20px; color: white; }
-        .card-header h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; line-height: 1.2; }
-        .card-header p { font-size: 11px; opacity: 0.9; font-weight: 600; }
-
-        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); }
-        .info-item { background: var(--bg-body); padding: 15px 20px; }
-        .info-item label { display: block; font-size: 9px; text-transform: uppercase; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
-        .info-item span { font-size: 14px; font-weight: 600; color: var(--text-main); }
-
-        .full-width { grid-column: span 2; }
-    </style>
+    @media (max-width: 500px) { .card-body { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 
-<div class="app-container">
-    <header>
-        <div class="logo-text"><i class="fas fa-boxes-stacked"></i> INVENTÁRIO PRO</div>
-        <div class="badge">Operacional v3.0</div>
-    </header>
-
-    <nav class="top-nav">
-        <button class="nav-btn" onclick="toggleTheme()" id="themeBtn"><i class="fas fa-moon"></i> Noturno</button>
-        <button class="nav-btn" onclick="alternarFiltro()" id="filterBtn"><i class="fas fa-filter"></i> Todos</button>
-    </nav>
+<div class="container">
+    <div class="logo">Consulta de Produtos</div>
+    <div class="subtitulo">BASE DE DADOS OPERACIONAL</div>
 
     <div id="reader"></div>
 
-    <div class="search-area">
-        <div class="input-group">
-            <i class="fas fa-search"></i>
-            <input type="text" id="busca" placeholder="EAN, Código ou Nome..." autocomplete="off">
-            <div id="sugestoes" class="suggestions-box"></div>
+    <div class="controls">
+        <button class="btn-action" onclick="toggleTheme()"><i class="fas fa-adjust"></i> Tema</button>
+        <button class="btn-action" id="filterBtn" onclick="alternarFiltro()">Filtro: Todos</button>
+    </div>
+
+    <div class="search-wrapper">
+        <div class="search-box">
+            <input type="text" id="busca" placeholder="Código, Descrição ou EAN..." autocomplete="off">
+            <button class="btn-clear" id="btnClear" title="Limpar busca"><i class="fas fa-times-circle"></i></button>
+            <div id="sugestoes" class="suggestions"></div>
         </div>
-        <button class="btn-scan" id="scanBtn" title="Abrir Câmera">
-            <i class="fas fa-camera"></i>
-        </button>
+        <button class="btn-camera" id="scanBtn"><i class="fas fa-camera"></i></button>
     </div>
 
     <div id="resultado"></div>
@@ -480,6 +443,7 @@
 {codigo:"22106", descricao:"MINI OREO PCT 35G CX C/10", fator:10, lastro:1, caixas_pallet:520, embalagem:"PCT 35G CX 10", hl_pallet:"1,82", clusterDemanda:"MARKET PLACE", subcategoria:"SNACKS", categoria:"MKTP", categoriaPPMS:"MONDELEZ", codEAN:7622210933454, "Portifolio CDD":"SIM"},
 {codigo:"22830", descricao:"MONTILLA CARTA OURO GARRAFA VIDRO 1 L", fator:1, lastro:1, caixas_pallet:576, embalagem:"GRF 1L", hl_pallet:"5,76", clusterDemanda:"MARKET PLACE", subcategoria:"HARD LIQUOR", categoria:"MKTP", categoriaPPMS:"PERNOD RICARD", codEAN:7891050004208, "Portifolio CDD":"SIM"},
 {codigo:"29058", descricao:"NADIR AMERICANO CERVEJA ORIG COPO VIDRO190ML CX12", fator:12, lastro:12, caixas_pallet:300, embalagem:"COPO 190ML CX 12", hl_pallet:"6,84", clusterDemanda:"MARKET PLACE", subcategoria:"TRADE MATERIALS", categoria:"MKTP", categoriaPPMS:"UNMAPPED", codEAN:7891155080893, "Portifolio CDD":"SIM"},
+{codigo:"29054", descricao:"NADIR CALDERETA COLORADO COPO VIDRO 350ML CX 6", fator:6, lastro:9, caixas_pallet:270, embalagem:"COPO 350ML CX 6", hl_pallet:"5,67", clusterDemanda:"MARKET PLACE", subcategoria:"TRADE MATERIALS", categoria:"MKTP", categoriaPPMS:"UNMAPPED", codEAN:7891155081142, "Portifolio CDD":"NÃO"},
 {codigo:"23233", descricao:"NATU NOBILIS APERITIVO GARRAFA VIDRO 1 L", fator:1, lastro:1, caixas_pallet:540, embalagem:"GRF 1L", hl_pallet:"5,4", clusterDemanda:"MARKET PLACE", subcategoria:"HARD LIQUOR", categoria:"MKTP", categoriaPPMS:"PERNOD RICARD", codEAN:7891050000460, "Portifolio CDD":"SIM"},
 {codigo:"35807", descricao:"NATURAL ONE LARANJA MACA GFA PET 300ML FD C 12", fator:10, lastro:7, caixas_pallet:224, embalagem:"PET 300ML SH 12", hl_pallet:"8,06", clusterDemanda:"MARKET PLACE", subcategoria:"NAB", categoria:"MKTP", categoriaPPMS:"UNMAPPED", codEAN:7899916917624, "Portifolio CDD":"SIM"},
 {codigo:"23064", descricao:"NINHO INTEGRAL VITAMINA CX 1L CX C/12", fator:12, lastro:5, caixas_pallet:85, embalagem:"CX 1L CX 12", hl_pallet:"10,2", clusterDemanda:"MARKET PLACE", subcategoria:"MILK PRODUCT", categoria:"MKTP", categoriaPPMS:"PIRACANJUBA", codEAN:7898215157403, "Portifolio CDD":"SIM"},
@@ -723,149 +687,119 @@
 {codigo:"29481", descricao:"YVY VODKA GFA VD 750 ML", fator:1, lastro:5, caixas_pallet:660, embalagem:"GRF 750ML", hl_pallet:"4,95", clusterDemanda:"MARKET PLACE", subcategoria:"HARD LIQUOR", categoria:"MKTP", categoriaPPMS:"UNMAPPED", codEAN:7898994720959, "Portifolio CDD":"SIM"},
 {codigo:"37940", descricao:"ZE DELIVERY BAG TERMICO 1 UN 30X36X20 C50 RET", fator:10, lastro:2, caixas_pallet:72, embalagem:"1 UN 30X36X20 C50 RET", hl_pallet:"2,22", clusterDemanda:"MARKET PLACE", subcategoria:"TRADE MATERIALS", categoria:"MKTP", categoriaPPMS:"Neobag", codEAN:7448070280817, "Portifolio CDD":"SIM"},
 {codigo:"36773", descricao:"ZE DELIVERY SACOLA PLAST AMARELA 1 UN SAC 13,8G 50X60 SACO P", fator:10, lastro:3, caixas_pallet:114, embalagem:"1 UN SAC 13,8G 50X60 SACO PL C500", hl_pallet:"7,87", clusterDemanda:"MARKET PLACE", subcategoria:"TRADE MATERIALS", categoria:"MKTP", categoriaPPMS:"Zé Delivery", codEAN:7908531410448, "Portifolio CDD":"SIM"},
-{codigo:"36697", descricao:"ZE DELIVERY SACOLA PLAST AMARELA 1 UN SAC 8G 37X48 SACO PL C1000", fator:10, lastro:2, caixas_pallet:100, embalagem:"1 UN SAC 8G 37X48 SACO PL C1000", hl_pallet:"0,01", clusterDemanda:"MARKET PLACE", subcategoria:"TRADE MATERIALS", categoria:"MKTP", categoriaPPMS:"Zé Delivery", codEAN:7908531411230, "Portifolio CDD":"SIM"},
+{codigo:"36697", descricao:"ZE DELIVERY SACOLA PLAST AMARELA 1 UN SAC 8G 37X48 SACO PL C1000", fator:10, lastro:2, caixas_pallet:100, embalagem:"1 UN SAC 8G 37X48 SACO PL C1000", hl_pallet:"0,01", clusterDemanda:"MARKET PLACE", subcategoria:"TRADE MATERIALS", categoria:"MKTP", categoriaPPMS:"Zé Delivery", codEAN:7908531411230, "Portifolio CDD":"SIM"}
     ];
 
     let filtroCDD = false;
     let html5QrCode;
     const inputBusca = document.getElementById('busca');
+    const btnClear = document.getElementById('btnClear');
     const sugestoesDiv = document.getElementById('sugestoes');
     const scanBtn = document.getElementById('scanBtn');
 
-    // --- LOGICA DE BUSCA ATUALIZADA ---
-    inputBusca.addEventListener('input', e => {
-        const termo = e.target.value.trim().toLowerCase();
+    // --- BUSCA ---
+    inputBusca.addEventListener('input', () => {
+        const termo = inputBusca.value.trim().toLowerCase();
+        btnClear.style.display = termo ? 'block' : 'none';
         
-        if(termo.length < 1) { 
-            sugestoesDiv.style.display = 'none'; 
-            return; 
-        }
+        if (!termo) { sugestoesDiv.style.display = 'none'; return; }
 
-        const apenasNumeros = /^\d+$/.test(termo);
+        let filtrados = produtos.filter(p => 
+            p.codigo.toLowerCase().includes(termo) || 
+            p.descricao.toLowerCase().includes(termo) ||
+            (p.codEAN && String(p.codEAN).includes(termo))
+        );
 
-        let filtrados = produtos.filter(p => {
-            if (apenasNumeros) {
-                // Busca EXATA para Código ou EAN quando for número
-                return p.codigo === termo || String(p.codEAN) === termo;
-            } else {
-                // Busca PARCIAL para a Descrição quando for texto
-                return p.descricao.toLowerCase().includes(termo);
-            }
-        });
+        if (filtroCDD) filtrados = filtrados.filter(p => p["Portifolio CDD"] === "SIM");
 
-        if(filtroCDD) filtrados = filtrados.filter(p => p["Portifolio CDD"] === "SIM");
-
-        renderizarSugestoes(filtrados, apenasNumeros);
-    });
-
-    function renderizarSugestoes(lista, ehNumero) {
         sugestoesDiv.innerHTML = '';
-        
-        if(lista.length > 0) {
-            // Se for busca numérica e tiver apenas 1 resultado, exibe direto
-            if(ehNumero && lista.length === 1) {
-                exibirProduto(lista[0]);
-                sugestoesDiv.style.display = 'none';
-                return;
-            }
-
+        if (filtrados.length > 0) {
             sugestoesDiv.style.display = 'block';
-            lista.forEach(p => {
+            filtrados.forEach(p => {
                 const div = document.createElement('div');
-                div.className = 'suggest-item';
-                div.innerHTML = `<span>CÓD. ${p.codigo}</span><strong>${p.descricao}</strong>`;
+                div.style.padding = '12px 18px';
+                div.style.cursor = 'pointer';
+                div.innerHTML = `<strong>${p.codigo}</strong> - ${p.descricao}`;
                 div.onclick = () => exibirProduto(p);
                 sugestoesDiv.appendChild(div);
             });
-        } else {
-            sugestoesDiv.style.display = 'none';
         }
-    }
+    });
 
     function exibirProduto(p) {
-        inputBusca.value = '';
+        inputBusca.value = p.descricao;
+        btnClear.style.display = 'block';
         sugestoesDiv.style.display = 'none';
         document.getElementById('resultado').innerHTML = `
-            <div class="product-card">
-                <div class="card-header">
-                    <p>CÓDIGO INTERNO: ${p.codigo}</p>
-                    <h3>${p.descricao}</h3>
-                </div>
-                <div class="info-grid">
-                    <div class="info-item full-width"><label>EAN (Código de Barras)</label><span>${p.codEAN}</span></div>
-                    <div class="info-item"><label>Embalagem</label><span>${p.embalagem}</span></div>
-                    <div class="info-item"><label>Fator</label><span>${p.fator} unidades</span></div>
-                    <div class="info-item"><label>Lastro</label><span>${p.lastro} caixas</span></div>
-                    <div class="info-item"><label>Pallet Full</label><span>${p.caixas_pallet} caixas</span></div>
+            <div class="card-produto">
+                <div class="card-header">${p.codigo} - Detalhes</div>
+                <div class="card-body">
+                    <div class="campo" style="grid-column: span 2"><span>Descrição</span><strong>${p.descricao}</strong></div>
+                    <div class="campo"><span>EAN</span><strong>${p.codEAN}</strong></div>
+                    <div class="campo"><span>Embalagem</span><strong>${p.embalagem}</strong></div>
+                    <div class="campo"><span>Fator</span><strong>${p.fator}</strong></div>
+                    <div class="campo"><span>Lastro / Pallet</span><strong>${p.lastro} / ${p.caixas_pallet}</strong></div>
                 </div>
             </div>
         `;
     }
 
-    // --- LÓGICA DO SCANNER ---
-    scanBtn.addEventListener('click', () => {
-        if (html5QrCode && html5QrCode.isScanning) {
-            pararScanner();
-        } else {
-            iniciarScanner();
-        }
-    });
+    // --- LIMPAR ---
+    btnClear.onclick = () => {
+        inputBusca.value = '';
+        btnClear.style.display = 'none';
+        sugestoesDiv.style.display = 'none';
+        document.getElementById('resultado').innerHTML = '';
+        inputBusca.focus();
+    };
 
-    function iniciarScanner() {
-        const readerDiv = document.getElementById('reader');
-        readerDiv.style.display = 'block';
-        scanBtn.classList.add('active');
+    // --- SCANNER MELHORADO ---
+    scanBtn.onclick = () => {
+        const reader = document.getElementById('reader');
+        if (reader.style.display === 'block') { stopScan(); } 
+        else { startScan(); }
+    };
+
+    function startScan() {
+        document.getElementById('reader').style.display = 'block';
         scanBtn.innerHTML = '<i class="fas fa-times"></i>';
-
+        scanBtn.style.background = '#e74c3c';
+        
         html5QrCode = new Html5Qrcode("reader");
+        
+        // Configurações para melhor detecção de EAN
         const config = { 
             fps: 15, 
-            qrbox: { width: 250, height: 150 },
-            aspectRatio: 1.0 
+            qrbox: { width: 300, height: 150 }, // Caixa retangular para barras
+            aspectRatio: 1.777778, // 16:9
+            formatsToSupport: [ Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8 ]
         };
 
         html5QrCode.start(
             { facingMode: "environment" }, 
             config,
-            (decodedText) => {
-                const p = produtos.find(item => String(item.codEAN) === String(decodedText));
-                if (p) {
-                    exibirProduto(p);
-                    pararScanner();
-                } else {
-                    alert("EAN não cadastrado: " + decodedText);
-                }
+            (text) => {
+                const p = produtos.find(item => String(item.codEAN) === text);
+                if(p) { exibirProduto(p); stopScan(); }
+                else { alert("EAN não cadastrado: " + text); }
             }
-        ).catch(err => {
-            console.error(err);
-            alert("Certifique-se de usar HTTPS e conceder permissão à câmera.");
-            pararScanner();
-        });
+        ).catch(err => { console.error(err); stopScan(); });
     }
 
-    function pararScanner() {
-        if (html5QrCode) {
+    function stopScan() {
+        if(html5QrCode) {
             html5QrCode.stop().then(() => {
                 document.getElementById('reader').style.display = 'none';
-                scanBtn.classList.remove('active');
                 scanBtn.innerHTML = '<i class="fas fa-camera"></i>';
-                html5QrCode.clear();
-            }).catch(err => {
-                document.getElementById('reader').style.display = 'none';
-                scanBtn.innerHTML = '<i class="fas fa-camera"></i>';
+                scanBtn.style.background = 'var(--primary)';
             });
         }
     }
 
-    function toggleTheme() {
-        document.body.classList.toggle('dark');
-        const isDark = document.body.classList.contains('dark');
-        document.getElementById('themeBtn').innerHTML = isDark ? '<i class="fas fa-sun"></i> Diurno' : '<i class="fas fa-moon"></i> Noturno';
-    }
-
+    function toggleTheme() { document.body.classList.toggle('dark'); }
     function alternarFiltro() {
         filtroCDD = !filtroCDD;
-        document.getElementById('filterBtn').innerHTML = `<i class="fas fa-filter"></i> ${filtroCDD ? 'Apenas CDD' : 'Todos'}`;
+        document.getElementById('filterBtn').innerText = `Filtro: ${filtroCDD ? 'CDD' : 'Todos'}`;
     }
 </script>
 
